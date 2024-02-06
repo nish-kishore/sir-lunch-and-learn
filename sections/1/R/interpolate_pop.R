@@ -10,5 +10,22 @@
 #' @param end.year  an integer for the last year of data to end interpolation
 #' @returns A tibble with variables `state`, `county`, `year`, `pop`
 interpolate_pop <- function(pop_data, start.year, end.year){
-
+  
+  pop_data <- us_pop
+  
+  int_data <- pop_data |> 
+    pivot_longer(cols = starts_with("pop"), names_to = "year", names_prefix = "pop") |> 
+    mutate(year = str_replace(string = year, pattern = "_", replacement = "")) |> 
+    mutate(year = as.numeric(year))
+  
+  fitted.pop <- lm(value ~ year + county, data = int_data)
+  
+  projected_data <- expand_grid(
+    "state" = "Georgia", 
+    "county" = unique(pop_data$county), 
+    "year" = start.year:end.year
+  )
+  
+  projected_data$fitted.pop <- predict.lm(fitted.pop, newdata = projected_data)
+  
 }
