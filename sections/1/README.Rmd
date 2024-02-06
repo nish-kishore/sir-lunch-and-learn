@@ -16,6 +16,118 @@ library(sf)
 library(here)
 ```
 
+# The challenge
+Given the synthetic datasets above, we want to build a suite of functions 
+which will allow us to create a quick and reliable visualization of the data. 
+This will require three key functions. 
+
+1. `interpolate_pop()`: Convert population data from wide to long and interpolate missing data for years where data is unavailable.
+
+*Description*: Takes in wide incomplete population data and turns it into 
+long form with interpolated data along a range. 
+
+*Params*: 
+
+- `pop_data` Wide population data from census with only certain years provided 
+
+- `start.year` an integer for the first year of data to begin interpolation
+
+- `end.year` an integer for the last year of data to end interpolation
+
+*Returns*:
+A tibble with variables `state`, `county`, `year`, `pop`
+
+2. `add_npafp_data()`: Takes in a plot object and returns a ggplot map with 
+npafp rate data attached. 
+
+*Description*: Takes in a plot object adds npafp data and returns a facet wrapped
+plot object depending on start and end year. 
+
+*Params*
+
+-`input_plot` a ggplot object to be passed in. In this case it is base_plot
+
+-`spatial_data` a sf object with variables to join in data from pop
+
+-`afp_data` a tibble object loading afp information 
+
+-`pop_data` a tibble object with pop data in long format
+
+-`start.year` an integer for the first year of data to begin interpolation
+
+-`end.year` an integer for the last year of data to end interpolation
+
+*Returns*:
+A ggplot object
+
+3. `add_es_sites()`: Takes in a plot object and returns a ggplot map with ES sites
+added to it. 
+
+*Description*: Takes in ES data and merges it to spatial files. Filters ES data 
+based off of having at least a minimum number of collections and portrayed
+on the map with different symbols for each type and only the years requested
+
+*Params*:
+
+- `input_plot` a ggplot object to be passed in. In this case it is base_plot
+
+- `es_sites` a spatial points dataset with information about sites
+
+- `es_data` a tibble with information on sites years and # of collections 
+
+- `min.coll` an integer describing the minimum number of collections to include a site
+
+- `start.year` an integer for the first year of data to begin interpolation
+
+- `end.year` an integer for the last year of data to end interpolation
+
+*Returns*: a ggplot object
+
+We will begin with this base plot and add pieces to it:
+```{r}
+#load up all of our data files of interest
+ga_state <- read_rds(here("sections/1/data/ga_sf.rds"))
+ga_counties <- read_rds(here("sections/1/data/ga_counties_sf.rds"))
+us_pop <- read_rds(here("sections/1/data/us_pop.rds"))
+afp_data <- read_rds(here("sections/1/data/afp.rds"))
+es_sites <- read_rds(here("sections/1/data/es_sites.rds"))
+es_data <- read_rds(here("sections/1/data/es_data.rds"))
+
+base_plot <- ggplot() +
+  geom_sf(data = ga_state, fill = NA) + 
+  theme_void()
+```
+
+Our goal is to be able to successfully run this series of commands: 
+````{r, warning = FALSE}
+#load up all the functions we've created 
+list.files(here("sections/1/R"), full.names = T) |> 
+  sapply(source)
+
+plot1 <- add_npafp_data(
+    input_plot = base_plot,
+    afp_data = afp_data, 
+    spatial_data = ga_counties,
+    pop_data = interpolate_pop(pop_data, start.year = 2020, end.year = 2023),
+    start.year = 2020, 
+    end.year = 2023
+    ) 
+
+plot2 <- add_es_sites(
+  input_plot = plot1,
+    es_sites = es_sites, 
+    es_data = es_data, 
+    min.coll = 5,
+    start.year = 2020, 
+    end.year = 2023
+    )
+
+plot2 +
+  labs(title = "NFAP Rate and ES Sites by Year in Georgia, USA", 
+       fill = "NPAFP Rate",
+       color = "# Collections", 
+       shape = "ES Type")
+```
 # How did I create this dataset? 
 
 ## Data Sources
@@ -148,117 +260,4 @@ read_rds(here("sections/1/data/es_sites.rds")) |>
   write_rds(here("sections/1/data/es_data.rds"))
 
 rm(list = ls())
-```
-
-# The challenge
-Given the synthetic datasets above, we want to build a suite of functions 
-which will allow us to create a quick and reliable visualization of the data. 
-This will require three key functions. 
-
-1. `interpolate_pop()`: Convert population data from wide to long and interpolate missing data for years where data is unavailable.
-
-*Description*: Takes in wide incomplete population data and turns it into 
-long form with interpolated data along a range. 
-
-*Params*: 
-
-- `pop_data` Wide population data from census with only certain years provided 
-
-- `start.year` an integer for the first year of data to begin interpolation
-
-- `end.year` an integer for the last year of data to end interpolation
-
-*Returns*:
-A tibble with variables `state`, `county`, `year`, `pop`
-
-2. `add_npafp_data()`: Takes in a plot object and returns a ggplot map with 
-npafp rate data attached. 
-
-*Description*: Takes in a plot object adds npafp data and returns a facet wrapped
-plot object depending on start and end year. 
-
-*Params*
-
--`input_plot` a ggplot object to be passed in. In this case it is base_plot
-
--`spatial_data` a sf object with variables to join in data from pop
-
--`afp_data` a tibble object loading afp information 
-
--`pop_data` a tibble object with pop data in long format
-
--`start.year` an integer for the first year of data to begin interpolation
-
--`end.year` an integer for the last year of data to end interpolation
-
-*Returns*:
-A ggplot object
-
-3. `add_es_sites()`: Takes in a plot object and returns a ggplot map with ES sites
-added to it. 
-
-*Description*: Takes in ES data and merges it to spatial files. Filters ES data 
-based off of having at least a minimum number of collections and portrayed
-on the map with different symbols for each type and only the years requested
-
-*Params*:
-
-- `input_plot` a ggplot object to be passed in. In this case it is base_plot
-
-- `es_sites` a spatial points dataset with information about sites
-
-- `es_data` a tibble with information on sites years and # of collections 
-
-- `min.coll` an integer describing the minimum number of collections to include a site
-
-- `start.year` an integer for the first year of data to begin interpolation
-
-- `end.year` an integer for the last year of data to end interpolation
-
-*Returns*: a ggplot object
-
-We will begin with this base plot and add pieces to it:
-```{r}
-#load up all of our data files of interest
-ga_state <- read_rds(here("sections/1/data/ga_sf.rds"))
-ga_counties <- read_rds(here("sections/1/data/ga_counties_sf.rds"))
-us_pop <- read_rds(here("sections/1/data/us_pop.rds"))
-afp_data <- read_rds(here("sections/1/data/afp.rds"))
-es_sites <- read_rds(here("sections/1/data/es_sites.rds"))
-es_data <- read_rds(here("sections/1/data/es_data.rds"))
-
-base_plot <- ggplot() +
-  geom_sf(data = ga_state, fill = NA) + 
-  theme_void()
-```
-
-Our goal is to be able to successfully run this series of commands: 
-````{r, warning = FALSE}
-#load up all the functions we've created 
-list.files(here("sections/1/R"), full.names = T) |> 
-  sapply(source)
-
-plot1 <- add_npafp_data(
-    input_plot = base_plot,
-    afp_data = afp_data, 
-    spatial_data = ga_counties,
-    pop_data = interpolate_pop(pop_data, start.year = 2020, end.year = 2023),
-    start.year = 2020, 
-    end.year = 2023
-    ) 
-
-plot2 <- add_es_sites(
-  input_plot = plot1,
-    es_sites = es_sites, 
-    es_data = es_data, 
-    min.coll = 5,
-    start.year = 2020, 
-    end.year = 2023
-    )
-
-plot2 +
-  labs(title = "NFAP Rate and ES Sites by Year in Georgia, USA", 
-       fill = "NPAFP Rate",
-       color = "# Collections", 
-       shape = "ES Type")
 ```
