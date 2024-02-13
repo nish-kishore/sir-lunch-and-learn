@@ -14,8 +14,17 @@
 #' @param end.year an integer for the last year of data to end interpolation
 #' @returns a ggplot object 
 add_es_sites <- function(input_plot, es_sites, es_data, min.coll, start.year, end.year){
-  
+ 
+   es_data_1 <- es_sites %>%
+     left_join(es_data %>% select(site_id, n_collections, year), by = c("site_id")) %>%
+    filter(n_collections >= min.coll & year >= start.year & year<= end.year) 
+   
+   
+   plot <- input_plot + 
+     ggplot2::geom_sf(data=es_data_1, aes(color=n_collections, shape=type)) +
+     facet_wrap(~year)
   
   return(plot)
   
 }
+
