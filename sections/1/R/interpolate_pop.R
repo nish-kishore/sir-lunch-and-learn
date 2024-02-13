@@ -11,8 +11,6 @@
 #' @returns A tibble with variables `state`, `county`, `year`, `pop`
 interpolate_pop <- function(pop_data, start.year, end.year){
   
-  pop_data <- us_pop
-  
   int_data <- pop_data |> 
     pivot_longer(cols = starts_with("pop"), names_to = "year", names_prefix = "pop") |> 
     mutate(year = str_replace(string = year, pattern = "_", replacement = "")) |> 
@@ -27,5 +25,10 @@ interpolate_pop <- function(pop_data, start.year, end.year){
   )
   
   projected_data$fitted.pop <- predict.lm(fitted.pop, newdata = projected_data)
+  
+  out <- projected_data |> 
+    mutate(pop = round(fitted.pop, 0))
+  
+  return(out)
   
 }
