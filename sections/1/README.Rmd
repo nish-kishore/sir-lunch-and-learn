@@ -17,7 +17,7 @@ library(here)
 ```
 
 # The challenge
-Given the synthetic datasets above, we want to build a suite of functions 
+Given the synthetic datasets below, we want to build a suite of functions 
 which will allow us to create a quick and reliable visualization of the data. 
 This will require three key functions. 
 
@@ -99,7 +99,7 @@ base_plot <- ggplot() +
 ```
 
 Our goal is to be able to successfully run this series of commands: 
-````{r, warning = FALSE}
+```{r, warning = FALSE}
 #load up all the functions we've created 
 list.files(here("sections/1/R"), full.names = T) |> 
   sapply(source)
