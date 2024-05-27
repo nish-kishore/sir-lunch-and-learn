@@ -15,27 +15,28 @@
 #' @returns a ggplot object 
 add_es_sites <- function(input_plot, es_sites, es_data, min.coll, start.year, end.year){
   
-  #input_plot <- base_plot
-  #es_sites <- es_sites
-  #es_data <- es_data
-  #min.coll <- 3
-  #start.year <- 2019
-  #end.year <- 2023
+  input_plot <- base_plot
+  es_sites <- es_sites
+  es_data <- es_data
+  min.coll <- 3
+  start.year <- 2018
+  end.year <- 2020
   
   summarise_data <- es_data |> 
     dplyr::filter(
       between(year, start.year, end.year) & n_collections >= min.coll
     )
     
-  es_sites <- es_sites |> 
+  es_sites1 <- es_sites |> 
     dplyr::left_join(
     summarise_data,
     by = "site_id"
-  )
+  ) |> 
+    filter(!is.na(year))
   
   plot <- input_plot +
     geom_sf(
-      data = es_sites,
+      data = es_sites1,
       aes(
         color = n_collections,
         shape = type.x
