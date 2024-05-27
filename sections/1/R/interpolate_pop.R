@@ -11,9 +11,9 @@
 #' @returns A tibble with variables `state`, `county`, `year`, `pop`
 interpolate_pop <- function(pop_data, start.year, end.year){
 
-  pop_data <- us_pop
-  start.year <- 2010
-  end.year <- 2030
+  # pop_data <- us_pop
+  # start.year <- 2010
+  # end.year <- 2030
   
   #convert wide to long and clean up year data
   our_data<-pivot_longer(pop_data, starts_with("pop"), names_to = "year", names_prefix = "pop") |> 
@@ -35,4 +35,9 @@ interpolate_pop <- function(pop_data, start.year, end.year){
   #predict from the linear model for other years of data
   simulated.data$prediction <- predict(model, newdata = simulated.data)
   
+  simulated.data <- simulated.data |> 
+    mutate(pop = round(prediction, 0), 
+           state = "Georgia")
+  
+  return(simulated.data)
 }
