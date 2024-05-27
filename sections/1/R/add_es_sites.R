@@ -15,7 +15,42 @@
 #' @returns a ggplot object 
 add_es_sites <- function(input_plot, es_sites, es_data, min.coll, start.year, end.year){
   
+  #input_plot <- base_plot
+  #es_sites <- es_sites
+  #es_data <- es_data
+  #min.coll <- 3
+  #start.year <- 2019
+  #end.year <- 2023
+  
+  summarise_data <- es_data |> 
+    dplyr::filter(
+      between(year, start.year, end.year) & n_collections >= min.coll
+    )
+    
+  es_sites <- es_sites |> 
+    dplyr::left_join(
+    summarise_data,
+    by = "site_id"
+  )
+  
+  plot <- input_plot +
+    geom_sf(
+      data = es_sites,
+      aes(
+        color = n_collections,
+        shape = type.x
+        ),
+      size = 3
+      ) +
+    facet_wrap(~year) +
+    labs(
+      shape = "Type"
+    )
   
   return(plot)
   
 }
+
+
+
+
