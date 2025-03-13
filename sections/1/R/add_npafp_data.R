@@ -26,6 +26,8 @@ add_npafp_data <- function(input_plot, spatial_data, afp_data, pop_data, start.y
   long_spatial <- lapply(start.year:end.year, function(x) dplyr::mutate(spatial_data, year = x)) |> 
     dplyr::bind_rows()
   
+  int_spatial <- dplyr::left_join(long_spatial, int_data, by = c("year", "NAMELSAD" = "county"))
+  
   return(plot)
   
 }
