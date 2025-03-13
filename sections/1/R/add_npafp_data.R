@@ -23,6 +23,9 @@ add_npafp_data <- function(input_plot, spatial_data, afp_data, pop_data, start.y
     dplyr::select(year, state, county, npafp_rate) |> 
     filter(year >= start.year & year <= end.year)
   
+  long_spatial <- lapply(start.year:end.year, function(x) dplyr::mutate(spatial_data, year = x)) |> 
+    dplyr::bind_rows()
+  
   return(plot)
   
 }
