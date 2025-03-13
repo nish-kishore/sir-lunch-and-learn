@@ -15,6 +15,19 @@
 #' @returns a ggplot object 
 add_es_sites <- function(input_plot, es_sites, es_data, min.coll, start.year, end.year){
   
+  long_es_sites <- lapply(start.year:end.year, function(x) mutate(es_sites, year = x)) |> 
+    dplyr::bind_rows()
+  
+  int_data <- es_data |> 
+    dplyr::filter(n_collections >= min.coll) |> 
+    dplyr::filter(year >= start.year & year <= end.year)
+  
+  int_spatial <- left_join(long_es_sites, int_data, by = c("site_id" ,"type", "year")) |> 
+    filter(!is.na(n_collections))
+  
+  plot <- input_plot + 
+    ggplot2::geom_sf(data = int_spatial, aes(color = n_collections, shape = type)) + 
+    ggplot2::facet_wrap(~year)
   
   return(plot)
   
