@@ -28,6 +28,11 @@ add_npafp_data <- function(input_plot, spatial_data, afp_data, pop_data, start.y
   
   int_spatial <- dplyr::left_join(long_spatial, int_data, by = c("year", "NAMELSAD" = "county"))
   
+  plot <- input_plot + 
+    ggplot2::geom_sf(data = int_spatial, aes(fill = npafp_rate)) + 
+    ggplot2::facet_wrap(~year) + 
+    ggplot2::scale_fill_distiller(palette = "Reds", na.value = "white")
+  
   return(plot)
   
 }
